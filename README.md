@@ -2,5 +2,6 @@
 - This script displays the current power being used by the Raritan Rack PDU
 # Output Example:
 ```
-2235 W
+(.venv) PS C:\Users\test-user\python_raritanpdu> python .\python_check_active_power.py
+2096 W
 ```
