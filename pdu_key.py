@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pdu_key.py
 
 from cryptography.fernet import Fernet
 import json
