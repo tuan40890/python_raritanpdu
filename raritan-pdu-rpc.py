@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+import os
 from raritan import rpc
 from raritan.rpc import pdumodel
 import raritan.rpc.net as net_rpc
@@ -19,14 +20,20 @@ class Tee:
         for f in self.files:
             f.flush()
 
-def get_pdu_info_and_save(filename="pdu_info.txt"):
+def get_pdu_info_and_save(pdu_ip, username, password):
     """
     Connects to a Raritan PDU, retrieves device and network information,
     power usage, and saves the formatted output to a specified text file,
     while also printing to the terminal.
     """
+    # Sanitize IP for filename to avoid issues with special characters
+    safe_pdu_ip = pdu_ip.replace('.', '_').replace(':', '-')
+    filename = f"pdu_info_{safe_pdu_ip}.txt"
+
     original_stdout = sys.stdout
-    file_handle = None # Initialize file_handle to None
+    file_handle = None
+
+    print(f"\n--- Processing PDU: {pdu_ip} ---") # Print to original stdout
 
     try:
         file_handle = open(filename, 'w')
@@ -34,7 +41,7 @@ def get_pdu_info_and_save(filename="pdu_info.txt"):
         sys.stdout = Tee(original_stdout, file_handle)
 
         # Initialize RPC agent and PDU/Network objects
-        agent = rpc.Agent("https", "192.168.1.10", "admin", "admin", disable_certificate_verification=True)
+        agent = rpc.Agent("https", pdu_ip, username, password, disable_certificate_verification=True)
         network = net_rpc.Net("/net", agent)
         pdu = pdumodel.Pdu("/model/pdu/0", agent)
 
@@ -75,16 +82,21 @@ def get_pdu_info_and_save(filename="pdu_info.txt"):
 
         # POWER USAGE INFO
         # Obtain currently active power usage in Watts per PDU inlet
-        inlet_energy_sensor = 0 # Will store the last inlet's reading as per original logic
-        for inlet in pdu.getInlets():
-            inlet_energy_sensor = inlet.getSensors().activePower.getReading().value
+        # Note: The original logic captures only the last inlet's reading if multiple exist.
+        inlet_energy_sensor = 0
+        inlets = pdu.getInlets()
+        if inlets:
+            for inlet in inlets:
+                inlet_energy_sensor = inlet.getSensors().activePower.getReading().value
 
         # Obtain outlet names and their active power
         for outlet in pdu.getOutlets():
             outlet_energy_sensor = outlet.getSensors().activePower.getReading().value
+            outlet_pwstat = str(outlet.getState().powerState)
+            splitted_outlet_pwstat = outlet_pwstat.split('_')[-1]
             label_num = outlet.getMetaData().label
             label_name = outlet.getSettings().name
-            print(f"{int(outlet_energy_sensor)} W\tOutlet {label_num}\t{label_name}")
+            print(f"{int(outlet_energy_sensor)} W\tOutlet {label_num}\tStatus {splitted_outlet_pwstat}\t{label_name}")
 
         print("----------------------------")
         print(f"Total Active Power: {int(inlet_energy_sensor)} W")
@@ -93,9 +105,9 @@ def get_pdu_info_and_save(filename="pdu_info.txt"):
     except Exception as e:
         # Print error to both console and file if Tee is active, otherwise just console
         if sys.stdout is not original_stdout:
-            sys.stdout.write(f"\nAn error occurred: {e}\n")
+            sys.stdout.write(f"\nAn error occurred for PDU {pdu_ip}: {e}\n")
         else:
-            print(f"\nAn error occurred: {e}\n")
+            print(f"\nAn error occurred for PDU {pdu_ip}: {e}\n")
     finally:
         # Restore original stdout
         sys.stdout = original_stdout
@@ -103,8 +115,29 @@ def get_pdu_info_and_save(filename="pdu_info.txt"):
         if file_handle:
             file_handle.close()
         # This message should only go to the console
-        print(f"PDU information successfully saved to '{filename}'")
+        if 'filename' in locals():
+            print(f"PDU information for {pdu_ip} saved to '{filename}'\n\n\n")
+        else:
+            print(f"PDU information for {pdu_ip} could not be saved to a file due to an earlier error.\n\n\n")
 
 # Execute the function
 if __name__ == "__main__":
-    get_pdu_info_and_save()
+    pdu_file = "pdu_ip.txt"
+    username = "admin" # PDU username
+    password = "admin" # PDU password
+
+    if not os.path.exists(pdu_file):
+        print(f"Error: PDU IP file '{pdu_file}' not found.")
+        print("Please create 'pdu_ip.txt' with one PDU IP address per line.")
+        sys.exit(1)
+
+    with open(pdu_file, 'r') as f:
+        # Read non-empty lines and strip whitespace
+        pdu_ips = [line.strip() for line in f if line.strip()]
+
+    if not pdu_ips:
+        print(f"Warning: No PDU IP addresses found in '{pdu_file}'. Exiting.")
+        sys.exit(0)
+
+    for ip in pdu_ips:
+        get_pdu_info_and_save(ip, username, password)
