@@ -1,5 +1,5 @@
 # Display Active Power
-- This script uses RPC to obtain and display general info and active power usage of the Raritan Rack PDUs
+- This script uses RPC to obtain and display general info and active power usage of the Raritan Rack PDUs.
 - Outputs are generated into separate output files.
 # Output Example:
 ```
