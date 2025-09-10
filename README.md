@@ -1,4 +1,4 @@
-# Display Active Power
+# Display PDU Info
 - This script uses RPC to obtain and display general info and active power usage of the Raritan Rack PDUs.
 - It also displays outlet number, power status, and description
 - Outputs are generated into separate output files.
