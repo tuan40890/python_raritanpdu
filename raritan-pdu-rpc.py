@@ -103,7 +103,7 @@ def get_pdu_info_and_save(pdu_ip, username, password):
             power_state = str(outlet.getState().powerState).split('_')[-1]
             label_num = outlet.getMetaData().label
             label_name = outlet.getSettings().name
-            print(f"{int(outlet_power)} W\tOutlet {label_num}\tStatus {power_state}\t{label_name}")
+            print(f"{int(outlet_power)}\tW\tOutlet {label_num}\tStatus {power_state}\t{label_name}")
 
         print("----------------------------")
         print(f"Total Active Power: {int(inlet_power)} W")
