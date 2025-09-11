@@ -7,8 +7,12 @@
 # Output Example:
 ```
 (.venv) PS C:\Users\test-user\python_raritanpdu> python .\raritan-pdu-rpc.py                       
-                                                                                                                             
+Script started at: 2025-09-11 10:10:28
+
+Starting PDU information retrieval for 2 PDUs...
+
 --- Processing PDU: 192.168.1.10 ---
+
 [DEVICE INFO]
         Hostname: examplepdu1
         Manufacturer: Raritan
@@ -21,6 +25,7 @@
         Gateway: 192.168.1.1
         DNS: ['8.8.8.8', '4.4.4.4']
 -------------------------------------------------------------------------------
+[POWER USAGE INFO & OUTLET DESCRIPTIONS]
 0       W       Outlet 1        Status ON
 0       W       Outlet 2        Status ON
 0       W       Outlet 3        Status ON
@@ -44,9 +49,7 @@
 ----------------------------
 Total Active Power: 2085 W
 -------------------------------------------------------------------------------
-PDU information for 192.168.1.10 saved to 'pdu_info_192_168_1_10.txt'
-
-
+PDU information for 192.168.1.10 saved to 'pdu_info_examplepdu1.txt'
 
 
 --- Processing PDU: 192.168.1.11 ---
@@ -85,5 +88,10 @@ PDU information for 192.168.1.10 saved to 'pdu_info_192_168_1_10.txt'
 ----------------------------
 Total Active Power: 2111 W
 -------------------------------------------------------------------------------
-PDU information for 192.168.1.11 saved to 'pdu_info_192_168_1_11.txt'
+PDU information for 192.168.1.11 saved to 'pdu_info_examplepdu2.txt'
+
+Completed.
+
+Script ended at: 2025-09-10 21:10:42
+Total script runtime: 00:00:14
 ```
