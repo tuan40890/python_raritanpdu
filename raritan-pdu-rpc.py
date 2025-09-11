@@ -1,160 +1,93 @@
 #!/usr/bin/env python3
-
-import sys
-import os
-import json
-import concurrent.futures
-import threading
-import datetime # Import the datetime module
-
+import sys, os, json, datetime, concurrent.futures
+from cryptography.fernet import Fernet
 from raritan import rpc
 import raritan.rpc.pdumodel as pdumodel
 import raritan.rpc.net as net_rpc
-from cryptography.fernet import Fernet
 
-# Configuration Constants
-PDU_FILE = "pdu_ip.txt"
-KEY_FILE = "pdu_key.key"
-CREDS_FILE = "pdu_key.enc"
-MAX_WORKERS = 10 # Number of concurrent PDU connections
+PDU_FILE, KEY_FILE, CREDS_FILE, MAX_WORKERS = "pdu_ip.txt", "pdu_key.key", "pdu_key.enc", 10
 
-# A lock for thread-safe printing to the console
-print_lock = threading.Lock()
-
-def process_pdu(pdu_ip, username, password):
-    """
-    Connects to a Raritan PDU, retrieves info, builds output,
-    then saves to file and prints to console.
-    """
-    output_buffer = []
-
+def load_creds():
     try:
-        output_buffer.append(f"\n--- Processing PDU: {pdu_ip} ---")
+        key = open(KEY_FILE,'rb').read()
+        data = Fernet(key).decrypt(open(CREDS_FILE,'rb').read())
+        c = json.loads(data.decode());  return c["username"], c["password"]
+    except Exception as e:
+        print(f"Credential error: {e}"); sys.exit(1)
 
-        agent = rpc.Agent("https", pdu_ip, username, password, disable_certificate_verification=True)
-        network = net_rpc.Net("/net", agent)
-        pdu = pdumodel.Pdu("/model/pdu/0", agent)
+def process_pdu(ip, user, pw):
+    out = [f"\n--- Processing PDU: {ip} ---"]
+    safe = ip.replace('.','_').replace(':','-')
+    fn = f"pdu_info_{safe}.txt"
+    try:
+        a = rpc.Agent("https", ip, user, pw, disable_certificate_verification=True)
+        net = net_rpc.Net("/net", a)
+        pdu = pdumodel.Pdu("/model/pdu/0", a)
 
-        pdu_settings = pdu.getSettings()
-        pdu_meta = pdu.getMetaData()
-        net_settings = network.getSettings()
-        eth0_if_map = net_settings.ifMap.get("eth0")
-        dns_servers = ', '.join(net_settings.common.dns.serverAddrs) if net_settings.common.dns.serverAddrs else 'N/A'
+        s = pdu.getSettings(); m = pdu.getMetaData(); ns = net.getSettings()
+        eth = ns.ifMap.get("eth0")
+        dns = ', '.join(ns.common.dns.serverAddrs) if ns.common.dns.serverAddrs else 'N/A'
+        fn = f"pdu_info_{s.name}.txt"
 
-        # Use multi-line f-strings for concise output formatting
-        output_buffer.append(f"""
+        out.append(f"""
 [DEVICE INFO]
-    Hostname: {pdu_settings.name}
-    Manufacturer: {pdu_meta.nameplate.manufacturer}
-    Model: {pdu_meta.nameplate.model}
-    SN: {pdu_meta.nameplate.serialNumber}
-    FW Revision: {pdu_meta.fwRevision}
+    Hostname: {s.name}
+    Manufacturer: {m.nameplate.manufacturer}
+    Model: {m.nameplate.model}
+    SN: {m.nameplate.serialNumber}
+    FW Revision: {m.fwRevision}
 -------------------------------------------------------------------------------
 [NETWORK INFO]
-    IP Address: {eth0_if_map.ipv4.staticAddrCidr.addr}/{eth0_if_map.ipv4.staticAddrCidr.prefixLen}
-    Gateway: {eth0_if_map.ipv4.staticDefaultGatewayAddr}
-    DNS: {dns_servers}
+    IP Address: {eth.ipv4.staticAddrCidr.addr}/{eth.ipv4.staticAddrCidr.prefixLen}
+    Gateway: {eth.ipv4.staticDefaultGatewayAddr}
+    DNS: {dns}
 -------------------------------------------------------------------------------
 [POWER USAGE INFO & OUTLET DESCRIPTIONS]""")
 
-        inlet_power = 0
         inlets = pdu.getInlets()
-        if inlets:
-            inlet_power = inlets[-1].getSensors().activePower.getReading().value
+        inlet_power = inlets[-1].getSensors().activePower.getReading().value if inlets else 0
 
-        outlets_info = []
-        for outlet in pdu.getOutlets():
-            outlet_power = outlet.getSensors().activePower.getReading().value
-            power_state = str(outlet.getState().powerState).split('_')[-1]
-            label_num = outlet.getMetaData().label
-            label_name = outlet.getSettings().name
-            outlets_info.append(f"{int(outlet_power)}\tW\tOutlet {label_num}\tStatus {power_state}\t{label_name}")
-        
-        if not outlets_info:
-            output_buffer.append("\tNo outlets found.")
-        else:
-            output_buffer.extend(outlets_info)
+        outs = []
+        for o in pdu.getOutlets():
+            w = int(o.getSensors().activePower.getReading().value)
+            state = str(o.getState().powerState).split('_')[-1]
+            outs.append(f"{w}\tW\tOutlet {o.getMetaData().label}\tStatus {state}\t{o.getSettings().name}")
 
-        safe_pdu_ip = pdu_ip.replace('.', '_').replace(':', '-')
-        filename = f"pdu_info_{pdu_settings.name}_{safe_pdu_ip}.txt"
-
-        output_buffer.append(f"""----------------------------
+        out.extend(outs or ["\tNo outlets found."])
+        out.append(f"""----------------------------
 Total Active Power: {int(inlet_power)} W
 -------------------------------------------------------------------------------
-PDU information for {pdu_ip} saved to '{filename}'
+PDU information for {ip} saved to '{fn}'
 
-""") # Added extra newlines for better separation in terminal output
-
+""")
     except Exception as e:
-        output_buffer.append(f"\nAn error occurred for PDU {pdu_ip}: {e}\n"
-                             f"PDU information for {pdu_ip} could not be fully retrieved. Error logged to '{filename}' if file was created.\n\n")
+        out.append(f"\nError for {ip}: {e}\n")
 
-    finally:
-        full_output = "\n".join(output_buffer)
-        try:
-            with open(filename, 'w') as f: f.write(full_output)
-        except Exception as file_e:
-            # If writing to file fails, print a critical error to console
-            with print_lock:
-                print(f"CRITICAL ERROR: Could not write PDU info to file {filename}: {file_e}")
-                print(f"Output for {pdu_ip}:\n{full_output}")
-        
-        # Print the full output to the console in a thread-safe manner
-        with print_lock:
-            print(full_output, end='') # Use end='' to avoid double newlines
-
-def load_and_decrypt_credentials():
-    """Loads, decrypts, and returns username and password."""
+    txt = "\n".join(out)
     try:
-        with open(KEY_FILE, 'rb') as f: key = f.read()
-        cipher_suite = Fernet(key)
-        with open(CREDS_FILE, 'rb') as f: encrypted_data = f.read()
-        creds = json.loads(cipher_suite.decrypt(encrypted_data).decode())
-        return creds['username'], creds['password']
-    except FileNotFoundError:
-        print(f"Error: Credential files '{KEY_FILE}' or '{CREDS_FILE}' not found.\n"
-              "Please run 'pdu_key.py' first to set up credentials.")
-        sys.exit(1)
+        with open(fn,'w') as f: f.write(txt)
     except Exception as e:
-        print(f"Error decrypting credentials: {e}\n"
-              "Ensure the key and encrypted credentials are valid and not corrupted.")
-        sys.exit(1)
+        txt += f"\nCRITICAL: cannot write {fn}: {e}\n"
+    return txt
 
 if __name__ == "__main__":
-    # Record script start time
-    script_start_time = datetime.datetime.now()
-    print(f"Script started at: {script_start_time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-
-    username, password = load_and_decrypt_credentials()
+    start = datetime.datetime.now()
+    print(f"Script started at: {start:%Y-%m-%d %H:%M:%S}\n")
+    user, pw = load_creds()
 
     if not os.path.exists(PDU_FILE):
-        print(f"Error: PDU IP file '{PDU_FILE}' not found. Create it with one PDU IP per line.")
-        sys.exit(1)
+        print(f"Missing '{PDU_FILE}'"); sys.exit(1)
+    ips = [l.strip() for l in open(PDU_FILE) if l.strip()]
+    if not ips:
+        print("No IPs found. Exiting."); sys.exit(0)
 
-    with open(PDU_FILE) as f:
-        pdu_ips = [line.strip() for line in f if line.strip()]
+    print(f"Starting PDU information retrieval for {len(ips)} PDUs...")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
+        for fut in concurrent.futures.as_completed(ex.submit(process_pdu, ip, user, pw) for ip in ips):
+            print(fut.result(), end='')
 
-    if not pdu_ips:
-        print(f"Warning: No PDU IP addresses found in '{PDU_FILE}'. Exiting.")
-        sys.exit(0)
-
-    print(f"Starting PDU information retrieval for {len(pdu_ips)} PDUs...")
-
-    # Use ThreadPoolExecutor for concurrent execution
-    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        futures = [executor.submit(process_pdu, ip, username, password) for ip in pdu_ips]
-        concurrent.futures.wait(futures) # Wait for all submitted tasks to complete
-
-    # Record script end time
-    script_end_time = datetime.datetime.now()
-    total_runtime = script_end_time - script_start_time
-
-    # Format total runtime into HH:MM:SS
-    total_seconds = int(total_runtime.total_seconds())
-    hours, remainder = divmod(total_seconds, 3600)
-    minutes, seconds = divmod(remainder, 60)
-    runtime_formatted = f"{hours:02}:{minutes:02}:{seconds:02}"
-
+    end = datetime.datetime.now()
+    dur = int((end - start).total_seconds()); h, r = divmod(dur, 3600); m, s = divmod(r, 60)
     print("Completed.")
-    print(f"\nScript ended at: {script_end_time.strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"Total script runtime: {runtime_formatted}")
+    print(f"\nScript ended at: {end:%Y-%m-%d %H:%M:%S}")
+    print(f"Total script runtime: {h:02}:{m:02}:{s:02}")
