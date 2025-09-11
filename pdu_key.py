@@ -7,7 +7,7 @@ import os
 KEY_FILE = "pdu_key.key"
 CREDS_FILE = "pdu_key.enc"
 
-def generate_key_and_encrypt_credentials():
+def key_gen():
     """
     Generates an encryption key, prompts for PDU credentials,
     encrypts them, and saves both to files.
@@ -39,4 +39,4 @@ if __name__ == "__main__":
         if response.lower() != 'y':
             print("Operation cancelled.")
             exit()
-    generate_key_and_encrypt_credentials()
+    key_gen()
