@@ -1,9 +1,9 @@
 # Display PDU Info
-- This script uses RPC to obtain and display general info and active power usage of the Raritan Rack PDUs.
-- It also displays outlet number, power status, and description
-- Outputs are generated into separate output files.
+- This script uses RPC to obtain and display info about the Raritan Rack PDUs
+- Output for each PDU is generated into separate .txt files
+- Below is the output example on the terminal that includes the starting and ending time
 - First, run `pdu_key.py` to enter credentials to generate the encrypted files `pdu_key.key` and `pdu_key.enc`
-- The two encrypted files are required for the script `raritan-pdu-rpc.py` to run 
+- These two encrypted files are required for the script `raritan-pdu-rpc.py` to run
 # Output Example:
 ```
 (.venv) PS C:\Users\test-user\python_raritanpdu> python .\raritan-pdu-rpc.py                       
