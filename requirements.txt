@@ -1,4 +1,11 @@
 cffi==2.0.0
 cryptography==45.0.7
+numpy==2.2.6
+pandas==2.3.2
 pycparser==2.23
+python-dateutil==2.9.0.post0
+pytz==2025.2
 raritan==4.3.10.51837
+ruff==0.13.0
+six==1.17.0
+tzdata==2025.2
