@@ -49,7 +49,7 @@ def pdu_retrieve_info(ip, user, password):
     '''
     Run script to retrieve info from all PDUs using the IP addresses listed in the pdu_ip.txt
     '''
-    # set an empty list to queue all output sections, we will join all the output after
+    # set an empty list so outputs can be added later
     display_output = []
 
     try:
@@ -94,44 +94,42 @@ def pdu_retrieve_info(ip, user, password):
         f"NTP : {retrieve_ntp}\n"
         "-------------------------------------------------------------------------------\n")
 
-        # set an empty list to append data that will be genereated by the for loop
-        outlet_data = []
+        display_output.append("[OUTLET INFO]")
+
+        # set an empty list so outputs can be added later
+        all_outlets_data = []
 
         # loop over each outlet to obtain settings
         for outlet in pdu.getOutlets():
 
             # set variables to retrieve outlet data
-            retrieve_outlet_watts = int(outlet.getSensors().activePower.getReading().value)
+            retrieve_outlet_watts = round(outlet.getSensors().activePower.getReading().value)
             retrieve_outlet_label = outlet.getMetaData().label
             retrieve_outlet_receptacletype = outlet.getMetaData().receptacleType[-3:]
             retrieve_outlet_status = str(outlet.getState().powerState).split("_")[-1]
             retrieve_outlet_description = outlet.getSettings().name
 
-            # add data to the existing empty outlet_data list
-            outlet_data.append(
-                {
+            # add data to the existing empty all_outlets_data list
+            current_outlet_data_to_be_added = {
                     "Watts": retrieve_outlet_watts,
                     "Outlet": retrieve_outlet_label,
                     "Type": retrieve_outlet_receptacletype,
                     "Status": retrieve_outlet_status,
                     "Description": retrieve_outlet_description
-                }
-            )
+                    }
+            
+            # add all outputs to all_outlets_data
+            all_outlets_data.append(current_outlet_data_to_be_added)
 
-        if outlet_data:
-            # create DataFrame directly from the outlet_data dictionaries
-            df = pd.DataFrame(outlet_data)
-            display_output.append("[OUTLET INFO]")
-
-            # tell Pandas not to print the DataFrame's index (the row numbers) in the output
-            # also align the column headers in the center
-            display_output.append(df.to_string(justify='center', index=False))
-        else:
-            display_output.append("\tNo outlets found.")
+        # create DataFrame directly from the dictionaries
+        # tell Pandas not to print the DataFrame's index (the row numbers) in the output
+        # also align the column headers in the center
+        df = pd.DataFrame(all_outlets_data).to_string(index=False)
+        display_output.append(df)
 
         # display inlet's current active power
-        inlet_power = pdu.getInlets()[-1].getSensors().activePower.getReading().value
-        display_output.append(f"----------------------------\nTotal Active Power: {inlet_power:.2f} W\n")
+        inlet_power = round(pdu.getInlets()[-1].getSensors().activePower.getReading().value)
+        display_output.append(f"----------------------------\nTotal Active Power: {inlet_power} W\n")
         display_output.append("-------------------------------------------------------------------------------\n")
 
         # name the output variable and append output data to it
