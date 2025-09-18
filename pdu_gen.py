@@ -5,7 +5,7 @@ import json
 import os
 
 KEY_FILE = "pdu_key.key"
-CREDS_FILE = "pdu_key.enc"
+CREDS_FILE = "pdu_creds.enc"
 
 def key_gen():
     """
