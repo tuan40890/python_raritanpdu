@@ -7,92 +7,97 @@
 - In additiona, output for each PDU is generated into separate .txt files
 # Output Example:
 ```
-(.venv) PS C:\Users\test-user\python_raritanpdu> python .\raritan-pdu-rpc.py                       
-Script started at: 2025-09-11 10:10:28
+test-user@test-vm:~/python_raritanpdu_rpc$ uv run raritan-pdu-rpc.py 
 
-Starting PDU information retrieval for 2 PDUs...
+Script started at 21:22:19 on 09-10-2025
 
---- Processing PDU: 192.168.1.10 ---
+Starting PDU information retrieval for 4 PDUs...
 
 [DEVICE INFO]
-        Hostname: examplepdu1
-        Manufacturer: Raritan
-        Model: PX3-5464V
-        SN: TT9283792387
-        FW Revision: 4.1
+Hostname : examplePDU1
+Manufacturer : Raritan
+Model : PX3-5464V
+Inlet Type : L6-30P
+Serial Number : 54646352323
+FW Revision : 4.3.0.5-51180
 -------------------------------------------------------------------------------
+
 [NETWORK INFO]
-        IP Address: 192.168.1.10/24
-        Gateway: 192.168.1.1
-        DNS: ['8.8.8.8', '4.4.4.4']
+IP Address : 192.168.1.10/24
+Gateway : 192.168.1.1
+DNS : ['8.8.8.8', '4.4.4.4']
+NTP : ['0.north-america.pool.ntp.org', '1.north-america.pool.ntp.org']
 -------------------------------------------------------------------------------
-[POWER USAGE INFO & OUTLET DESCRIPTIONS]
-0       W       Outlet 1        Status ON
-0       W       Outlet 2        Status ON
-0       W       Outlet 3        Status ON
-167     W       Outlet 4        Status ON       bm1tbv
-167     W       Outlet 5        Status ON       bm2sbfsb
-0       W       Outlet 6        Status ON
-165     W       Outlet 7        Status ON       bm3fdbz
-149     W       Outlet 8        Status ON       bm4cbzm
-141     W       Outlet 9        Status ON       bm5sz
-143     W       Outlet 10       Status ON       bm6bfw
-0       W       Outlet 11       Status ON
-177     W       Outlet 12       Status ON       bm7dvxcb
-14      W       Outlet 13       Status ON       bm8bzcn
-188     W       Outlet 14       Status ON       bm9sgwe
-185     W       Outlet 15       Status ON       bm10dbn
-0       W       Outlet 16       Status ON
-172     W       Outlet 17       Status ON       bm11zbsz
-176     W       Outlet 18       Status ON       bm12cbsz
-118     W       Outlet 19       Status ON       bm13xcb
-123     W       Outlet 20       Status ON       bm14ewg
+
+[OUTLET INFO]
+ Watts Outlet Type Status Description           
+  0     1     C19  OFF                          
+156     2     C13   ON           machine1 PSU1
+160     3     C13   ON           machine2 PSU1
+150     4     C13   ON           machine3 PSU1
+149     5     C13   ON           machine4 PSU1
+  0     6     C19  OFF                          
+163     7     C13   ON           machine5 PSU1
+164     8     C13   ON           machine6 PSU1
+189     9     C13   ON           machine7 PSU1
+  0    10     C13  OFF                          
+  0    11     C19  OFF                          
+  0    12     C13  OFF                          
+  0    13     C13  OFF                          
+  0    14     C13  OFF                          
+  0    15     C13  OFF                          
+  0    16     C19  OFF                          
+  0    17     C13  OFF                          
+  0    18     C13  OFF                          
+140    19     C13   ON            machine8 PSU2
+ 41    20     C13   ON            machine9 PSU2
 ----------------------------
-Total Active Power: 2085 W
+Total Active Power: 1311 W
 -------------------------------------------------------------------------------
-PDU information for 192.168.1.10 saved to 'pdu_info_examplepdu1.txt'
 
+PDU info is exported to 'examplePDU1.txt'
 
---- Processing PDU: 192.168.1.11 ---
 [DEVICE INFO]
-        Hostname: examplepdu2
-        Manufacturer: Raritan
-        Model: PX3-5464V
-        SN: TT9141926387
-        FW Revision: 4.1
+Hostname : examplePDU2
+Manufacturer : Raritan
+Model : PX3-5464V
+Inlet Type : L6-30P
+Serial Number : 42352342363
+FW Revision : 4.3.0.5-51180
 -------------------------------------------------------------------------------
+
 [NETWORK INFO]
-        IP Address: 192.168.1.11/24
-        Gateway: 192.168.1.1
-        DNS: ['8.8.8.8', '4.4.4.4']
+IP Address : 192.168.1.11/24
+Gateway : 192.168.1.1
+DNS : ['8.8.8.8', '4.4.4.4']
+NTP : ['0.north-america.pool.ntp.org', '1.north-america.pool.ntp.org']
 -------------------------------------------------------------------------------
-0       W       Outlet 1        Status ON
-152     W       Outlet 2        Status ON       bm15vdb
-154     W       Outlet 3        Status ON       bm16zdzb
-171     W       Outlet 4        Status ON       bm17dvzdsb
-162     W       Outlet 5        Status ON       bm18BSSdb
-0       W       Outlet 6        Status ON
-164     W       Outlet 7        Status ON       bm19bsc
-160     W       Outlet 8        Status ON       bm20cxbzcb
-126     W       Outlet 9        Status ON       bm21cbs
-141     W       Outlet 10       Status ON       bm22sbd
-0       W       Outlet 11       Status ON
-12      W       Outlet 12       Status ON       bm23zbs
-10      W       Outlet 13       Status ON       bm24sBBs
-177     W       Outlet 14       Status ON       bm25Sb
-186     W       Outlet 15       Status ON       bm26bbsb
-0       W       Outlet 16       Status ON
-158     W       Outlet 17       Status ON       bm27bzdfn
-173     W       Outlet 18       Status ON       bm28fv
-125     W       Outlet 19       Status ON       bm29wfmh
-44      W       Outlet 20       Status ON       bm30fx
+
+[OUTLET INFO]
+ Watts Outlet Type Status Description           
+  0     1     C19  OFF                          
+146     2     C13   ON           machine11 PSU2
+159     3     C13   ON           machine12 PSU2
+159     4     C13   ON           machine13 PSU2
+161     5     C13   ON           machine14 PSU2
+  0     6     C19  OFF                          
+149     7     C13   ON           machine15 PSU2
+157     8     C13   ON           machine16 PSU2
+185     9     C13   ON           machine17 PSU2
+  0    10     C13  OFF                          
+  0    11     C19  OFF                          
+  0    12     C13  OFF                          
+  0    13     C13  OFF                          
+  0    14     C13  OFF                          
+  0    15     C13  OFF                          
+  0    16     C19  OFF                          
+  0    17     C13  OFF                          
+  0    18     C13  OFF                          
+146    19     C13   ON            machine18 PSU1
+ 29    20     C13   ON            machine19 PSU1
 ----------------------------
-Total Active Power: 2111 W
+Total Active Power: 1284 W
 -------------------------------------------------------------------------------
-PDU information for 192.168.1.11 saved to 'pdu_info_examplepdu2.txt'
 
-Completed.
-
-Script ended at: 2025-09-10 21:10:42
-Total script runtime: 00:00:14
+PDU info is exported to 'examplePDU2.txt'
 ```
