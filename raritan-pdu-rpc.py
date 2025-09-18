@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-import sys
-import os
+
 import json
 import datetime
 import concurrent.futures
@@ -12,7 +11,7 @@ import raritan.rpc.net as net_rpc
 import raritan.rpc.datetime as ntp
 
 
-# define global variables
+# define variables to access files
 PDU_IP_ADDRESSES = "pdu_ip.txt"
 KEY_FILE = "pdu_key.key"
 CREDS_FILE = "pdu_creds.enc"
