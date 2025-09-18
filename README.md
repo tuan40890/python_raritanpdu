@@ -11,7 +11,7 @@ test-user@test-vm:~/python_raritanpdu_rpc$ uv run raritan-pdu-rpc.py
 
 Script started at 21:22:19 on 09-10-2025
 
-Starting PDU information retrieval for 4 PDUs...
+Starting PDU information retrieval for 2 PDUs...
 
 [DEVICE INFO]
 Hostname : examplePDU1
