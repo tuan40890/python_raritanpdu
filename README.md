@@ -1,10 +1,10 @@
 # Display PDU Info
-- This script uses RPC to obtain and display info about the Raritan Rack PDUs
-- It also uses cryptography to encrypt the password that the user enters
+- This script uses RPC API to obtain and display info about the Raritan Rack PDUs
+- It also uses the cryptography library to encrypt the password that the user enters
 - First, run `pdu_gen.py` to enter credentials to generate the encrypted files `pdu_key.key` and `pdu_creds.enc`
 - These two encrypted files are required for the script `raritan-pdu-rpc.py` to run
 - Below is the output example for all PDUs on the terminal, and it includes the starting and ending time
-- Output for each PDU is generated into separate .txt files
+- In additiona, output for each PDU is generated into separate .txt files
 # Output Example:
 ```
 (.venv) PS C:\Users\test-user\python_raritanpdu> python .\raritan-pdu-rpc.py                       
