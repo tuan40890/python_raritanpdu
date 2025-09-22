@@ -19,35 +19,30 @@ def load_creds():
     '''
 
     try:
-        # create a variable to access the file
-        KEY_FILE = "pdu_key.key"
-
-        # open .key file in read & binary mode "rb" 
-        key = open(KEY_FILE, "rb").read()
-
-        # create a variable to access the file
-        CREDS_FILE = "pdu_creds.enc"
 
         # use the .key file to unlock the encrypted .enc file and decrypt it
+        KEY_FILE = "key.key"
+        CREDS_FILE = "creds.enc"
+        key = open(KEY_FILE, "rb").read()
         data = Fernet(key).decrypt(open(CREDS_FILE, "rb").read())
 
         # after decryption, data is still a byte string, decode it into normal strings
         str_creds = json.loads(data.decode())
 
-        # extract the decoded strings to return the values
+        # extract the decoded normal strings to return the values
         return str_creds["username"], str_creds["password"]
     except Exception as e:
         print(f"Credential error: {e}")
         sys.exit(1)
 
 
-def pdu_retrieve_info(ip, user, password):
+def info_retrieval(ip, user, password):
     '''
-    Retrieve PDU info and export it to a .txt file
+    Retrieve device info and export it to a .txt file
     '''
 
     try:
-
+        
         # set an empty list to append sectional outputs after
         display_output = []
 
@@ -65,7 +60,6 @@ def pdu_retrieve_info(ip, user, password):
         retrieve_inlet = pdu_inlet.getMetaData().plugType[5:]
         retrieve_serial = pdu.getMetaData().nameplate.serialNumber
         retrieve_fw_ver = pdu.getMetaData().fwRevision
-
         display_output.append("[DEVICE INFO]\n"
         f"Hostname : {retrieve_hostname}\n"
         f"Manufacturer : {retrieve_manufacturer}\n"
@@ -82,7 +76,6 @@ def pdu_retrieve_info(ip, user, password):
         retrieve_eth_gw = retrieve_net.ifMap.get("eth0").ipv4.staticDefaultGatewayAddr
         retrieve_dns = retrieve_net.common.dns.serverAddrs
         retrieve_ntp = ntpservers.getActiveNtpServers()
-
         display_output.append("[NETWORK INFO]\n"
         f"IP Address : {retrieve_eth_addr}/{retrieve_eth_prefixLen}\n"
         f"Gateway : {retrieve_eth_gw}\n"
@@ -92,7 +85,8 @@ def pdu_retrieve_info(ip, user, password):
 
         display_output.append("[OUTLET INFO]")
 
-        # set an empty list to store all the looped outputs in this section
+        # data will be stored as rows and columns in this section
+        # set an empty list to store all the looped outputs
         all_outlets_data = []
 
         # store the column headers in the headers variable
@@ -131,7 +125,7 @@ def pdu_retrieve_info(ip, user, password):
         output_file_name = f"pdu_{retrieve_hostname}.txt"
 
         # display on the terminal where the output is exported to
-        display_output.append(f"PDU info is exported to '{output_file_name}'\n\n")
+        display_output.append(f"Output is exported to '{output_file_name}'\n\n")
     except Exception as e:
         display_output.append(f"\nError for {retrieve_hostname} with IP {ip}: {e}\n")
 
@@ -160,28 +154,28 @@ if __name__ == "__main__":
     user, password = load_creds()
 
     # create a variable to access the file
-    PDU_IP_ADDRESSES = "pdu_ip.txt"
+    IP_ADDRESSES = "ip.txt"
 
     # check if host file is present
-    if not os.path.exists(PDU_IP_ADDRESSES):
-        print(f"Missing '{PDU_IP_ADDRESSES}'")
+    if not os.path.exists(IP_ADDRESSES):
+        print(f"Missing '{IP_ADDRESSES}'")
         sys.exit(1)
 
     # use list comprehension to include only the stripped IP addresses
-    ip_addresses = [each_line.strip() for each_line in open(PDU_IP_ADDRESSES) if each_line.strip()]
+    ip_addresses = [each_line.strip() for each_line in open(IP_ADDRESSES) if each_line.strip()]
 
     # check if IP is found in the host file
     if not ip_addresses:
         print("No IPs found. Exiting.")
         sys.exit(0)
 
-    print(f"Starting PDU information retrieval for {len(ip_addresses)} PDUs...\n")
+    print(f"Retrieving data for {len(ip_addresses)} devices...\n")
 
     # assign the number of works to work on concurrency
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor_object:
         for future_object in concurrent.futures.as_completed(
-            executor_object.submit(pdu_retrieve_info, ip, user, password) for ip in ip_addresses
-        ):
+            executor_object.submit(info_retrieval, ip, user, password) for ip in ip_addresses):
+
             # print result, display all output
             print(future_object.result(), end="")
 
