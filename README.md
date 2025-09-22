@@ -1,7 +1,7 @@
 # Display PDU Info
-- This script uses RPC API to obtain and display info about the Raritan Rack PDUs
+- This python script interacts with the RPC API to obtain and display data from the Raritan Rack PDUs
 - It also uses the cryptography library to encrypt the password that the user enters
-- First, run `pdu_gen.py` to enter credentials to generate the encrypted files `pdu_key.key` and `pdu_creds.enc`
+- First, run `key_gen.py` to enter credentials to generate the encrypted files `key.key` and `creds.enc`
 - These two encrypted files are required for the script `raritan-pdu-rpc.py` to run
 - Below is the output example for all PDUs on the terminal, and it includes the starting and ending time
 - In additiona, output for each PDU is generated into separate .txt files
@@ -11,7 +11,7 @@ test-user@test-vm:~/python_raritanpdu_rpc$ uv run raritan-pdu-rpc.py
 
 Script started at 21:22:19 on 09-10-2025
 
-Starting PDU information retrieval for 2 PDUs...
+Retrieving data for 4 devices...
 
 [DEVICE INFO]
 Hostname : examplePDU1
@@ -55,7 +55,7 @@ NTP : ['0.north-america.pool.ntp.org', '1.north-america.pool.ntp.org']
 Total Active Power: 1311 W
 -------------------------------------------------------------------------------
 
-PDU info is exported to 'examplePDU1.txt'
+Output is exported to 'examplePDU1.txt'
 
 [DEVICE INFO]
 Hostname : examplePDU2
@@ -99,5 +99,5 @@ NTP : ['0.north-america.pool.ntp.org', '1.north-america.pool.ntp.org']
 Total Active Power: 1284 W
 -------------------------------------------------------------------------------
 
-PDU info is exported to 'examplePDU2.txt'
+Output is exported to 'examplePDU2.txt'
 ```
